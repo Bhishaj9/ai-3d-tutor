@@ -51,7 +51,7 @@ const useJWTController = () => {
     // 2️⃣ Narration async (non-blocking)
     setNarration("Loading...");
 
-    fetch(`http://localhost:5000/api/narration/${safeStep}`)
+    fetch(`https://ai-3d-tutor.onrender.com/api/narration/${safeStep}`)
       .then((res) => res.json())
       .then((data) => {
         const text = data?.narration || "Explanation unavailable.";
