@@ -24,7 +24,7 @@ const ChatInterface = () => {
     setInput("");
     
     // Send to backend
-    fetch('http://localhost:5000/api/chat', {
+    fetch('https://ai-3d-tutor.onrender.com/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input })
