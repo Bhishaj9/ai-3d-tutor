@@ -148,7 +148,57 @@ import LoginPanel from "./components/LoginPanel";
 
 // ... existing code ...
 
+
+// 🔹 CSS for the Access Request Card (Responsive)
+const ACCESS_REQUEST_STYLE = `
+  .access-request-card {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    padding: 22px 30px;
+    border-radius: 14px;
+    color: white;
+    font-family: system-ui, sans-serif;
+    max-width: 600px;
+    width: 90%; /* Responsive width */
+    text-align: center;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  /* Mobile Adjustments */
+  @media (max-width: 600px) {
+    .access-request-card {
+      bottom: 20px;
+      padding: 16px 20px;
+      width: 95%;
+      border-radius: 12px;
+    }
+    
+    .access-request-card h3 {
+      font-size: 16px !important;
+    }
+
+    .access-request-card p {
+      font-size: 14px !important;
+    }
+
+    .access-request-card button {
+      padding: 8px 20px !important;
+      font-size: 13px !important;
+    }
+  }
+`;
+
 function SceneWorld({ visualStep }) {
+
   const controlsRef = useRef();
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
   const { nextStep } = useJWTController();
@@ -272,6 +322,7 @@ export default function Scene() {
   return (
     <>
       <style>{GLOW_STYLE}</style>
+      <style>{ACCESS_REQUEST_STYLE}</style>
       <Canvas
         camera={{ position: [5, 5, 5], fov: 50 }}
         style={{ width: "100%", height: "100vh" }}
@@ -280,28 +331,7 @@ export default function Scene() {
       </Canvas>
 
       {/* UI */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: "40px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          background: "rgba(0, 0, 0, 0.85)",
-          padding: "22px 30px",
-          borderRadius: "14px",
-          color: "white",
-          fontFamily: "system-ui, sans-serif",
-          maxWidth: "600px",
-          textAlign: "center",
-          zIndex: 1000,
-          boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          display: "flex",
-          flexDirection: "column",
-          gap: "12px",
-          alignItems: "center",
-        }}
-      >
+      <div className="access-request-card">
         {/* 🔹 AUDIO CONTROLS */}
         <div
           onClick={toggleMute}
