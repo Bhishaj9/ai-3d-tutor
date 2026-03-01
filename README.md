@@ -1,3 +1,12 @@
+---
+title: Ai 3d Tutor
+emoji: 👁
+colorFrom: blue
+colorTo: blue
+sdk: docker
+pinned: false
+---
+
 # AI 3D Tutor
 
 By **Bhishaj Technologies**
@@ -97,3 +106,5 @@ The system architecture is strictly decoupled, representing a distinct separatio
 ---
 
 *Designed and engineered by Bhishaj Technologies.*
+
+Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
