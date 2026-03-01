@@ -13,6 +13,12 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.tools import tool
 import asyncio
 
+import mimetypes
+
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("text/css", ".css")
+mimetypes.add_type("image/svg+xml", ".svg")
+
 app = FastAPI(title="AI 3D Tutor Agent Backend")
 
 # Allow Vite dev server
@@ -273,5 +279,10 @@ if os.path.exists(client_build_dir):
         # Prevent API routes from being intercepted if they fail
         if catchall.startswith("api/") or catchall.startswith("ws/"):
             return {"error": "Not Found"}
+            
+        file_path = os.path.join(client_build_dir, catchall)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+            
         return FileResponse(os.path.join(client_build_dir, "index.html"))
 

@@ -24,7 +24,9 @@ const App = () => {
 
     // Initialize WebSocket
     if (!socketRef.current) {
-      socketRef.current = new WebSocket(`ws://localhost:8000/ws/${roomId}`);
+      const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || `${wsProtocol}//${window.location.host}`;
+      socketRef.current = new WebSocket(`${BACKEND_WS_URL}/ws/${roomId}`);
 
       socketRef.current.onopen = () => console.log(`Connected to room: ${roomId}`);
 
