@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+.env
+.git
+__pycache__
+*.pyc
+.DS_Store
+venv
+env

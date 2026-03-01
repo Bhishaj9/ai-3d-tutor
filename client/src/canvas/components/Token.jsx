@@ -1,35 +1,50 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
+import { useDracoGLTF } from "../utils/ModelLoader";
 import * as THREE from "three";
 
-function Token({ step }) {
-  const { scene } = useGLTF("/models/token.glb");
+function Token({ step, currentProtocol = "JWT" }) {
+  const { scene } = useDracoGLTF("/models/token.glb");
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 
   const meshRef = useRef();
   const [isVisible, setIsVisible] = useState(false);
 
   const isDenied = step === 5 || step === 6;
+  const isAuthCode = currentProtocol === "OAuth2" && step <= 3;
 
   // Animation state
   const [currentZ, setCurrentZ] = useState(-14);
   const [targetZ, setTargetZ] = useState(-14);
   const [progress, setProgress] = useState(1);
+  const [targetScale, setTargetScale] = useState(1);
+  const [currentScale, setCurrentScale] = useState(1);
 
   useEffect(() => {
     if (step === 2) {
       setIsVisible(true);
       setTargetZ(-14);
+      setTargetScale(isAuthCode ? 0.5 : 1);
       setProgress(0);
     } else if (step === 3 || isDenied) {
       setIsVisible(true);
-      setTargetZ(-19);
+      setTargetZ(isAuthCode ? -10 : -19); // If auth code, it goes back to server at step 3. Else gate at -19.
+      setTargetScale(isAuthCode ? 0.5 : 1);
       setProgress(0);
+    } else if (step === 4 && currentProtocol === "OAuth2") {
+      // Exchange completes, it flies from Auth Server to Gate!
+      setIsVisible(true);
+      setTargetZ(-19);
+      setTargetScale(1); // It grows into the Access Token!
+      setProgress(0);
+    } else if (step === 4) {
+      setIsVisible(true);
+      setTargetZ(-19);
+      setTargetScale(1);
     } else {
       setIsVisible(false);
     }
-  }, [step, isDenied]);
+  }, [step, isDenied, currentProtocol, isAuthCode]);
 
   useFrame((state, delta) => {
     if (!meshRef.current) return;
@@ -38,6 +53,13 @@ function Token({ step }) {
     meshRef.current.position.y =
       2 + Math.sin(state.clock.elapsedTime * 2) * 0.2;
     meshRef.current.rotation.y += delta * 0.5;
+
+    // Scale interpolation for Code Exchange reveal
+    if (currentScale !== targetScale) {
+      const newScale = THREE.MathUtils.lerp(currentScale, targetScale, 0.1);
+      setCurrentScale(newScale);
+      meshRef.current.scale.set(newScale, newScale, newScale);
+    }
 
     // 2. Movement
     if (progress < 1) {
@@ -75,12 +97,16 @@ function Token({ step }) {
         mat.emissive.set("#ef4444");
         mat.emissiveIntensity = 4;
       });
+    } else if (isAuthCode) {
+      meshRef.current.position.x = 0;
+      tokenMaterials.forEach((mat) => {
+        mat.emissive.set("#fbbf24"); // Yellow Auth Code
+        mat.emissiveIntensity = 3;
+      });
     } else {
       // Default Cyan/Hologram Look
       meshRef.current.position.x = 0;
       tokenMaterials.forEach((mat) => {
-        // We don't want to reset to a single color because the model has Cyan and Purple
-        // But for simplicity in this educational app, we can just reset to a bright cyan
         mat.emissive.set("#00ffff");
         mat.emissiveIntensity = 2;
       });

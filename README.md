@@ -1,44 +1,99 @@
-# AI 3D Tutor: JWT Authentication Visualized
+# AI 3D Tutor
 
-Welcome to the **AI 3D Tutor**, a spatial learning platform designed to visualize complex web protocols through 3D environments and real-time AI context. This module focuses on the **JSON Web Token (JWT)** authentication flow.
+By **Bhishaj Technologies**
 
-## 🚀 Project Overview
-This project maps the abstract sequence of JWT authentication to a physical 3D environment. By visualizing tokens as physical assets and servers as spatial entities, it builds a stronger mental model for developers. An integrated AI tutor provides real-time context, explaining the technical rationale behind each visual transition.
-
-## ❓ Problem Statement
-JWT authentication is often perceived as a "black box." Concepts like statelessness, digital signatures, and self-contained payloads are difficult to visualize using only 2D diagrams. This lack of visual intuition can lead to common security oversights and architectural misconceptions.
-
-## 💡 Solution Concept
-We implement a **Spatial Representation of the Auth Flow**:
-- **3D Visualization**: Physical assets representing the Client, Auth Server, and Protected Resource.
-- **Narrative Sequence**: A structured walkthrough that decomposes the protocol into atomic, observable steps.
-- **Interactive Context**: A multi-agent system (3D view + AI) where technical inquiries are answered in the context of the current visual state.
-
-## 🏗 Internal Architecture
-The project follows a **decoupled architecture**, separating the 3D presentation layer from the protocol logic:
-
-- **Scene Orchestration**: `Scene.jsx` serves as the orchestrator. It manages the global state and coordinates modular components (`User`, `Gate`, `AuthServer`) via a declarative configuration.
-- **Semantic Animation Engine**: Animations are encapsulated into named, story-driven functions (e.g., `moveUserToServer`, `openGate`). This ensures the logic is readable and easily maintainable.
-- **State-Synchronized Narration**: The tutor's narration is served via an API, ensuring that visual transitions and textual explanations remain synchronized through a centralized state controller.
-
-## 💻 Tech Stack
-- **Frontend**: React, Three.js (via `@react-three/fiber` and `@react-three/drei`)
-- **Backend**: Node.js, Express (API for narration and pedagogical context)
-- **Styling**: Modern CSS with glassmorphism and responsive design principles.
-- **Control**: Ref-based animation targeting for high-performance 3D updates.
-
-## 🌟 Why This Project Matters
-This repository demonstrates advanced engineering patterns applied to educational technology:
-
-- **Full-Stack Orchestration**: Synchronizing 3D state with backend APIs and state management.
-- **Extensible Architecture**: Implemented a **Model Abstraction Layer**, allowing the swap of primitive geometry for high-fidelity GLTF assets without altering the core animation logic.
-- **System Thinking**: Reflects real-world microservice logic, where the view layer respects protocol boundaries and stateless design.
-
-## 🔮 Future Scope
-- **Asset Integration**: Swapping primitives for optimized GLTF models.
-- **Protocol Expansion**: Implementing OAuth2, OpenID Connect, and PKCE flow visualizations.
-- **Payload Inspector**: Real-time 3D decoding of JWT parts (Header, Payload, Signature).
-- **Multiplayer State**: Collaborative learning via WebSockets for shared 3D sessions.
+*Visualize the invisible. A "Cyber-Stoic" approach to mastering web protocols.*
 
 ---
-*Built to make complex web protocols accessible and intuitive.*
+
+## Executive Summary
+
+Abstract web protocols—authentication flows, token exchanges, encrypted payloads—often exist as "black boxes" in the minds of developers. Traditional learning relies on static documentation and complex diagrams, leaving a gap between theoretical knowledge and structural intuition.
+
+The **AI 3D Tutor** replaces the abstract with a tangible, cinematic reality. By merging a highly stylized, spatial 3D visualization with an intelligent, context-aware "Stoic Technician" AI agent, we provide a collaborative educational platform. It is not just a tutorial; it is an orchestrator of learning, actively physically manipulating the 3D environment based on natural language interaction, ensuring deep structural comprehension.
+
+---
+
+## Visual Showcase
+
+### Architecture Overview
+*(Architecture Diagram Placeholder: Insert High-Level Architecture Diagram Here)*
+
+### Live Demo
+*(Demo Video Placeholder: Insert YouTube/Loom Link or GIF Here)*
+
+---
+
+## Key Features
+
+- **Agentic Mentorship:** Meet the "Stoic Technician." A context-aware guide with multi-turn memory designed to dissect complex protocols and deliver deep, technical insights with minimalist clarity.
+- **Spatial Orchestration (WebMCP):** The AI mentor transcends text. It utilizes sophisticated tool-calling to physically drive the narrative—highlighting specific architectural components and advancing the 3D scene step-by-step based on your conversational input.
+- **Multi-Protocol Support:** Support for deep, interactive visualizations of both foundational **JWT Authentication** and the rigorous **OAuth2 Authorization Code Flow** (including precise code exchange animations).
+- **Real-Time Multiplayer:** Collaborative learning powered by WebSockets. Instantly generated session rooms synchronize the scene state, chat history, and animations across all connected participants simultaneously. 
+- **The Payload Inspector:** A stunning, glassmorphic 3D spatial UI that dynamically floats in front of the Token, decoding and visualizing the inner workings of headers, payloads, and cryptographic signatures in true real-time.
+
+---
+
+## Technology Stack
+
+An elegant synergy of graphical fidelity, real-time networking, and agentic intelligence:
+
+### Frontend
+- **React 19 & Vite:** Delivering lightning-fast updates and modern declarative programming.
+- **Three.js & React Three Fiber (@react-three/drei):** High-performance WebGL graphics rendering.
+- **Draco Compression:** Heavily optimized `.glb` models guaranteeing a smooth, premium cinematic experience without network bottlenecks.
+
+### Backend
+- **Python FastAPI & Uvicorn:** A high-speed, asynchronous execution layer securely routing the logic.
+- **WebSockets:** Underpinning the real-time, low-latency multiplayer architecture.
+
+### AI Layer
+- **LangChain & Gemini API (`langchain-google-genai`):** Fueling the reasoning, multi-turn memory, and semantic context of the Stoic Technician.
+- **WebMCP Integration:** Providing the robust functional interface for the AI to manipulate the 3D domain.
+
+---
+
+## Getting Started
+
+### 1. The Agent Backend (Python)
+
+Navigate to the backend directory and install the necessary intelligence logic:
+
+```bash
+cd agent_backend
+python -m venv venv
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Start the FastAPI server (runs on `http://localhost:8000`):
+
+```bash
+uvicorn main:app --reload
+```
+
+### 2. The Client Frontend (React)
+
+Navigate to the client directory to initialize the spatial environment:
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Visit the designated local host address (typically `http://localhost:5173`) to enter the Sandbox.
+
+---
+
+## Architecture Deep-Dive
+
+The system architecture is strictly decoupled, representing a distinct separation between rendering and reasoning:
+
+1. **The Spatial View (Client):** The React frontend is entirely "dumb" regarding AI logic. It exclusively manages WebGL rendering, Draco model decoding, and cinematic camera interpolation. It listens to a persistent WebSocket stream for "State" and "Highlight" overrides.
+2. **The Logic Layer (Backend):** The FastAPI backend acts as the source of truth for the room. All chat prompts are routed to LangChain. The Stoic Technician analyzes the current spatial state (step, selected protocol, and history) and makes structural decisions. 
+3. **The WebMCP Bridge:** When the AI decides the user should focus on the Authorization Server, it calls the `highlight_component` tool. FastAPI captures this execution, packages it as a `sync_state` WebSocket payload, and broadcasts it. The React client interprets this payload, instantly driving the camera and material emission to guide the user's eye.
+
+---
+
+*Designed and engineered by Bhishaj Technologies.*

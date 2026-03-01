@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const LandingPage = ({ onStart }) => {
+const LandingPage = ({ onStart, roomId }) => {
   return (
     <>
       <style>{`
@@ -10,7 +10,7 @@ const LandingPage = ({ onStart }) => {
         .lp-container {
           width: 100vw;
           min-height: 100vh;
-          background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+          background: linear-gradient(135deg, #111111 0%, #000000 100%);
           color: #ffffff;
           font-family: 'Inter', system-ui, sans-serif;
           overflow-x: hidden;
@@ -52,10 +52,10 @@ const LandingPage = ({ onStart }) => {
         .lp-badge {
           display: inline-block;
           padding: 8px 16px;
-          background: rgba(74, 222, 128, 0.1);
-          border: 1px solid rgba(74, 222, 128, 0.2);
-          border-radius: 100px;
-          color: #4ade80;
+          background: rgba(168, 85, 247, 0.1);
+          border: 1px solid rgba(168, 85, 247, 0.2);
+          border-radius: 10px;
+          color: #a855f7;
           font-size: 14px;
           font-weight: 600;
           margin-bottom: 24px;
@@ -63,25 +63,29 @@ const LandingPage = ({ onStart }) => {
         }
 
         .lp-title {
-          font-size: 64px;
+          font-size: 56px;
           font-weight: 800;
           line-height: 1.1;
-          margin: 0 0 24px 0;
-          background: linear-gradient(to right, #ffffff, #94a3b8);
+          margin: 0 0 16px 0;
+          background: linear-gradient(to right, #ffffff, #64748b);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           letter-spacing: -2px;
         }
         
-        .lp-title span {
-          color: #4ade80;
-          -webkit-text-fill-color: #4ade80;
+        .lp-title-company {
+          font-size: 24px;
+          font-weight: 600;
+          color: #64748b;
+          margin-bottom: 8px;
+          text-transform: uppercase;
+          letter-spacing: 2px;
         }
 
         .lp-subtitle {
           font-size: 20px;
           line-height: 1.6;
-          color: #94a3b8;
+          color: #64748b;
           margin: 0 0 40px 0;
           max-width: 600px;
           margin-left: auto;
@@ -222,23 +226,24 @@ const LandingPage = ({ onStart }) => {
         <main className="lp-main">
           {/* Hero Section */}
           <div className="lp-hero">
-            <div className="lp-badge">AI-BUFFERED 3D JWT VISUALIZER</div>
-
+            <div className="lp-title-company">Bhishaj Technologies</div>
             <h1 className="lp-title">
-              Visualize the invisible. <br />
-              <span>Master auth flows in 60s.</span>
+              AI 3D Protocol Tutor
             </h1>
 
             <p className="lp-subtitle">
-              Forget static diagrams. Experience authentication as a cinematic,
-              narrated 3D journey.
+              Master JWT and OAuth2 through a cinematic, multi-user 3D journey guided by the Stoic Technician.
             </p>
+
+            <div className="lp-badge">ROOM: {roomId}</div>
+
+            <br />
 
             <button
               onClick={onStart}
               className="lp-cta-button"
             >
-              Launch Interactive Demo
+              Connect to Sandbox
             </button>
           </div>
 

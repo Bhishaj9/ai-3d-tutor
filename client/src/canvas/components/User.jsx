@@ -1,13 +1,14 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useGLTF, useAnimations } from "@react-three/drei";
+import { useAnimations } from "@react-three/drei";
+import { useDracoGLTF, preloadDraco } from "../utils/ModelLoader";
 import GameObject from "./GameObject";
 
 const BASE_Y = 0; // Ground level for character mesh
 
 function UserModel() {
   const groupRef = useRef();
-  const { animations, scene } = useGLTF("models/Standing-idle.glb");
+  const { animations, scene } = useDracoGLTF("models/Standing-idle.glb");
   const { actions, names } = useAnimations(animations, groupRef);
 
   useEffect(() => {
@@ -63,11 +64,11 @@ function User({ step }) {
 
         const newPos = [
           currentPosition[0] +
-            (targetPosition[0] - currentPosition[0]) * newProgress,
+          (targetPosition[0] - currentPosition[0]) * newProgress,
           currentPosition[1] +
-            (targetPosition[1] - currentPosition[1]) * newProgress,
+          (targetPosition[1] - currentPosition[1]) * newProgress,
           currentPosition[2] +
-            (targetPosition[2] - currentPosition[2]) * newProgress,
+          (targetPosition[2] - currentPosition[2]) * newProgress,
         ];
 
         meshRef.current.position.set(...newPos);

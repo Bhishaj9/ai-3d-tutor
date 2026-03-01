@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const ChatInterface = () => {
+const ChatInterface = ({ socket, roomId }) => {
   const [messages, setMessages] = useState([
     { text: "Hello! I'm your AI Tutor. Ask me things like \"Why does this step work?\" or \"What happens if the token expires?\"", sender: "ai" }
   ]);
   const [input, setInput] = useState("");
   const [isMinimized, setIsMinimized] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [protocol, setProtocol] = useState("JWT");
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -16,205 +18,283 @@ const ChatInterface = () => {
     scrollToBottom();
   }, [messages, isMinimized]);
 
+  useEffect(() => {
+    const handleStepChanged = (e) => setCurrentStep(e.detail);
+    window.addEventListener("stepChanged", handleStepChanged);
+    return () => window.removeEventListener("stepChanged", handleStepChanged);
+  }, []);
+
+  // Listen for WebSocket Broadcasts
+  useEffect(() => {
+    const handleWsMessage = (e) => {
+      const data = e.detail;
+      if (data.type === "chat_ai") {
+        setMessages(prev => [...prev, { text: data.message, sender: "ai" }]);
+      } else if (data.type === "chat_user") {
+        setMessages(prev => [...prev, { text: data.message, sender: "user" }]);
+      }
+    };
+    window.addEventListener("wsMessage", handleWsMessage);
+    return () => window.removeEventListener("wsMessage", handleWsMessage);
+  }, []);
+
+  const toggleProtocol = () => {
+    const newProtocol = protocol === "JWT" ? "OAuth2" : "JWT";
+    setProtocol(newProtocol);
+    window.dispatchEvent(new CustomEvent("protocolChanged", { detail: newProtocol }));
+
+    // Broadcast protocol change so others see it (if we want global sync)
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ type: "sync_state", protocol: newProtocol }));
+    }
+  };
+
   const handleSend = (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    setMessages(prev => [...prev, { text: input, sender: "user" }]);
+    // We don't append immediately, we wait for the broadcast bounce-back so everyone is synced.
+    // Prepare history payload for backend
+    const historyPayload = messages
+      .filter(m => m.sender === "user" || m.sender === "ai")
+      .map(m => ({ role: m.sender === "ai" ? "assistant" : "user", content: m.text }));
+
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        type: "chat",
+        message: input,
+        currentStep: currentStep,
+        topic: protocol,
+        history: historyPayload
+      }));
+    }
+
     setInput("");
-    
-    // Send to backend
-    fetch('https://ai-3d-tutor.onrender.com/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input })
-    })
-    .then(res => res.json())
-    .then(data => {
-        setMessages(prev => [...prev, { text: data.answer, sender: "ai" }]);
-    })
-    .catch(err => {
-        console.error(err);
-        setMessages(prev => [...prev, { text: "Sorry, I couldn't reach the server.", sender: "ai" }]);
-    });
+  };
+
+  const handleShare = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url)
+      .then(() => alert(`Room URL copied to clipboard!\n${url}`))
+      .catch(console.error);
   };
 
   if (isMinimized) {
     return (
-      <div 
+      <div
         onClick={() => setIsMinimized(false)}
         style={{
           position: 'fixed',
           top: '20px',
           left: '20px',
-          background: 'rgba(0, 0, 0, 0.8)',
+          background: 'rgba(17, 17, 17, 0.95)',
           borderRadius: '50px',
           padding: '10px 20px',
           color: 'white',
           cursor: 'pointer',
           zIndex: 1000,
-          boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.5)',
           fontFamily: 'sans-serif',
           fontWeight: 'bold',
           border: '1px solid rgba(255,255,255,0.1)'
         }}
       >
-        💬 Chat
+        💬 Open Chat
       </div>
     );
   }
 
   return (
     <>
-    <style>{`
+      <style>{`
       .chat-container {
         position: fixed;
         top: 20px;
         left: 20px;
-        width: 320px;
-        height: 450px;
-        background: rgba(0, 0, 0, 0.9);
+        width: 340px;
+        height: 480px;
+        background: rgba(17, 17, 17, 0.95);
         border-radius: 12px;
         display: flex;
         flex-direction: column;
         z-index: 1000;
         color: white;
-        font-family: sans-serif;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        border: 1px solid rgba(255,255,255,0.1);
-        transition: all 0.3s ease;
+        font-family: 'Inter', system-ui, sans-serif;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+        border: 1px solid rgba(255,255,255,0.05);
       }
-
-      .chat-header {
-        padding: 15px;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        font-weight: bold;
+      .chat-header-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: rgba(255,255,255,0.05);
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.02);
         border-top-left-radius: 12px;
         border-top-right-radius: 12px;
       }
-
+      .chat-header-bottom {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 16px;
+        background: rgba(0,0,0,0.2);
+        font-size: 11px;
+        color: #94a3b8;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+      }
       .chat-messages {
         flex: 1;
         overflow-y: auto;
-        padding: 15px;
+        padding: 16px;
         display: flex;
         flex-direction: column;
         gap: 12px;
       }
-
-      .chat-msg {
-        padding: 10px 14px;
-        border-radius: 16px;
+      .message {
         max-width: 85%;
+        padding: 10px 14px;
+        border-radius: 8px;
         font-size: 14px;
-        line-height: 1.4;
+        line-height: 1.5;
+        word-wrap: break-word;
       }
-      
-      .chat-msg.user {
-        align-self: flex-end;
-        background: #4a9eff;
-        color: white;
-        border-bottom-right-radius: 4px;
-        border-bottom-left-radius: 16px;
-      }
-
-      .chat-msg.ai {
+      .message.ai {
+        background: #1e293b;
+        color: #e2e8f0;
+        border: 1px solid rgba(148, 163, 184, 0.1);
         align-self: flex-start;
-        background: #333;
-        color: #e5e7eb;
-        border-bottom-right-radius: 16px;
-        border-bottom-left-radius: 4px;
       }
-
-      .chat-input-area {
-        padding: 15px;
-        border-top: 1px solid rgba(255,255,255,0.1);
+      .message.user {
+        background: #3b82f6;
+        color: white;
+        align-self: flex-end;
+      }
+      .message.system {
+        background: transparent;
+        color: #94a3b8;
+        align-self: center;
+        font-size: 12px;
+        font-style: italic;
+      }
+      .chat-input-form {
         display: flex;
-        gap: 8px;
-        background: rgba(0,0,0,0.2);
-        border-bottom-left-radius: 12px;
-        border-bottom-right-radius: 12px;
+        padding: 12px;
+        border-top: 1px solid rgba(255,255,255,0.1);
       }
-
       .chat-input {
         flex: 1;
-        padding: 10px;
-        border-radius: 20px;
+        background: rgba(255,255,255,0.05);
         border: 1px solid rgba(255,255,255,0.1);
-        outline: none;
-        background: #222;
         color: white;
-        font-size: 14px;
+        padding: 10px 14px;
+        border-radius: 6px;
+        outline: none;
       }
-
-      .chat-send-btn {
-        padding: 8px 16px;
-        background: #4ade80;
+      .chat-input:focus {
+        border-color: #3b82f6;
+      }
+      .chat-send {
+        background: #3b82f6;
+        color: white;
         border: none;
-        border-radius: 20px;
-        color: #003311;
+        padding: 0 16px;
+        margin-left: 8px;
+        border-radius: 6px;
         cursor: pointer;
         font-weight: bold;
-        font-size: 14px;
-        transition: transform 0.1s;
       }
-
-      @media (max-width: 600px) {
-        .chat-container {
-          top: auto;
-          bottom: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 90vw;
-          height: 50vh;
-        }
+      .chat-send:active {
+        opacity: 0.8;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.2);
+        border-radius: 3px;
       }
     `}</style>
 
-    <div className="chat-container">
-      <div className="chat-header">
-        <span>AI Tutor</span>
-        <button 
-          onClick={() => setIsMinimized(true)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#aaa',
-            cursor: 'pointer',
-            fontSize: '18px',
-            padding: '0 5px'
-          }}
-        >
-          −
-        </button>
-      </div>
-      
-      <div className="chat-messages">
-        {messages.map((msg, index) => (
-          <div key={index} className={`chat-msg ${msg.sender}`}>
-            {msg.text}
+      <div className="chat-container">
+        {/* Header Top */}
+        <div className="chat-header-top">
+          <div>
+            <span style={{ fontWeight: 600 }}>Bhishaj AI</span>
+            <button
+              onClick={toggleProtocol}
+              style={{
+                marginLeft: '8px',
+                background: protocol === "OAuth2" ? "#a855f7" : "#3b82f6",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "4px 8px",
+                fontSize: "11px",
+                cursor: "pointer",
+                fontWeight: "bold"
+              }}
+            >
+              {protocol}
+            </button>
           </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+          <button
+            onClick={() => setIsMinimized(true)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'gray',
+              cursor: 'pointer',
+              fontSize: '18px'
+            }}
+          >
+            —
+          </button>
+        </div>
 
-      <form onSubmit={handleSend} className="chat-input-area">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask why this step works..."
-          className="chat-input"
-        />
-        <button type="submit" className="chat-send-btn">
-          Send
-        </button>
-      </form>
-    </div>
+        {/* Header Bottom (Room Info) */}
+        <div className="chat-header-bottom">
+          <span>Room: {roomId}</span>
+          <button
+            onClick={handleShare}
+            style={{
+              background: 'transparent',
+              border: '1px solid #94a3b8',
+              color: '#94a3b8',
+              borderRadius: '4px',
+              padding: '2px 6px',
+              cursor: 'pointer',
+              fontSize: '10px'
+            }}
+          >
+            Share URL
+          </button>
+        </div>
+
+        <div className="chat-messages">
+          {messages.map((msg, index) => (
+            <div key={index} className={`message ${msg.sender}`}>
+              {msg.text}
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <form onSubmit={handleSend} className="chat-input-form">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask why this step works..."
+            className="chat-input"
+          />
+          <button type="submit" className="chat-send">
+            Send
+          </button>
+        </form>
+      </div>
     </>
   );
 };

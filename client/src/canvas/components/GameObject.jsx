@@ -1,12 +1,14 @@
-import React, { forwardRef, useMemo } from "react";
-import { useGLTF } from "@react-three/drei";
+import { forwardRef, useMemo } from "react";
+import { Text } from "@react-three/drei";
+import { useDracoGLTF } from "../utils/ModelLoader"; // New import
 
 /**
  * Internal Model Loader Component
  * Encapsulates the hook calls to ensure they are only invoked when this component is mounted.
  */
 function Model({ path }) {
-  const { scene } = useGLTF(path);
+  // Changed useGLTF to useDracoGLTF
+  const { scene } = useDracoGLTF(path);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
   return <primitive object={clonedScene} />;
 }

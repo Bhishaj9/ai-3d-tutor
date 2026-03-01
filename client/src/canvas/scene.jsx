@@ -36,7 +36,32 @@ const useJWTController = () => {
   const [visualStep, setVisualStep] = useState(0);
   const [narration, setNarration] = useState("Loading...");
   const [isMuted, setIsMuted] = useState(false);
+  const [currentProtocol, setCurrentProtocol] = useState("JWT");
   const { speak, stop } = useSpeech();
+
+  useEffect(() => {
+    const handleProtocolChange = (e) => setCurrentProtocol(e.detail);
+    window.addEventListener("protocolChanged", handleProtocolChange);
+
+    // Listen for WebSocket sync state
+    const handleWsMessage = (e) => {
+      const data = e.detail;
+      if (data.type === "sync_state") {
+        if (data.step !== undefined) setStep(data.step);
+        if (data.protocol !== undefined) setCurrentProtocol(data.protocol);
+        // Commands like highlight are handled by SceneWorld's agentCommand listener
+        if (data.command) {
+          window.dispatchEvent(new CustomEvent('agentCommand', { detail: data.command }));
+        }
+      }
+    };
+    window.addEventListener("wsMessage", handleWsMessage);
+
+    return () => {
+      window.removeEventListener("protocolChanged", handleProtocolChange);
+      window.removeEventListener("wsMessage", handleWsMessage);
+    };
+  }, []);
 
   // 🔒 Guard: ensure step is always valid
   const safeStep = JWT_STEP_CONFIG[step] ? step : 0;
@@ -47,6 +72,9 @@ const useJWTController = () => {
   useEffect(() => {
     // 1️⃣ Visuals must respond immediately
     setVisualStep(safeStep);
+
+    // Notify ChatInterface of the new step
+    window.dispatchEvent(new CustomEvent("stepChanged", { detail: safeStep }));
 
     // 2️⃣ Narration async (non-blocking)
     setNarration("Loading...");
@@ -119,9 +147,11 @@ const useJWTController = () => {
     isInvalidToken,
     isAccessDenied,
     isMuted,
+    currentProtocol, // Expose Protocol State
     nextStep,
     playFullStory,
     toggleMute,
+    setStep, // Exported to allow jump via advance_scene tool
   };
 };
 
@@ -143,8 +173,8 @@ const GLOW_STYLE = `
    SCENE WORLD (CANVAS CHILD)
    ========================= */
 
-// ... imports
 import LoginPanel from "./components/LoginPanel";
+import PayloadInspector from "./components/PayloadInspector";
 
 // ... existing code ...
 
@@ -197,11 +227,29 @@ const ACCESS_REQUEST_STYLE = `
   }
 `;
 
-function SceneWorld({ visualStep }) {
+function SceneWorld({ visualStep, currentProtocol }) {
 
   const controlsRef = useRef();
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
-  const { nextStep } = useJWTController();
+  const [highlightedComponent, setHighlightedComponent] = useState(null);
+  const { nextStep, setStep } = useJWTController();
+
+  useEffect(() => {
+    const handleAgentCommand = (e) => {
+      const cmd = e.detail;
+      if (cmd && cmd.type === "highlight") {
+        setHighlightedComponent(cmd.target);
+        // Auto remove highlight after 5 seconds
+        setTimeout(() => setHighlightedComponent(null), 5000);
+      } else if (cmd && cmd.type === "advance") {
+        // Force the scene to jump to the requested step
+        setStep(cmd.step);
+      }
+    };
+
+    window.addEventListener("agentCommand", handleAgentCommand);
+    return () => window.removeEventListener("agentCommand", handleAgentCommand);
+  }, [setStep]);
 
   const handleLoginStart = () => {
     setIsLoginSubmitting(true);
@@ -286,11 +334,17 @@ function SceneWorld({ visualStep }) {
         />
       )}
 
-      <User step={visualStep} />
-      <AuthServer />
-      <Gate step={visualStep} />
-      <Token step={visualStep} />
-      <ProtectedArea />
+      {/* Optionally apply highlighting logic by passing props. We'll pass it to all for complete integration */}
+      <User step={visualStep} highlight={highlightedComponent === "User"} />
+      <AuthServer highlight={highlightedComponent === "AuthServer"} currentProtocol={currentProtocol} />
+      <Gate step={visualStep} highlight={highlightedComponent === "Gate"} />
+
+      <group position={[0, 0, 0]}>
+        <Token step={visualStep} highlight={highlightedComponent === "Token"} currentProtocol={currentProtocol} />
+        {visualStep >= 2 && <PayloadInspector currentStep={visualStep} currentProtocol={currentProtocol} position={[0, 2, 0]} />}
+      </group>
+
+      <ProtectedArea currentProtocol={currentProtocol} />
 
       <OrbitControls ref={controlsRef} enablePan={false} />
       <CameraController
@@ -327,11 +381,24 @@ export default function Scene() {
         camera={{ position: [5, 5, 5], fov: 50 }}
         style={{ width: "100%", height: "100vh" }}
       >
-        <SceneWorld visualStep={visualStep} />
+        <SceneWorld visualStep={visualStep} currentProtocol={currentProtocol} />
       </Canvas>
 
       {/* UI */}
       <div className="access-request-card">
+        {/* 🔹 PROTOCOL TAG */}
+        <div style={{
+          position: "absolute",
+          top: "-15px",
+          background: currentProtocol === "OAuth2" ? "#a855f7" : "#3b82f6",
+          padding: "4px 12px",
+          borderRadius: "12px",
+          fontSize: "12px",
+          fontWeight: "bold",
+          letterSpacing: "1px"
+        }}>
+          {currentProtocol} MODE
+        </div>
         {/* 🔹 AUDIO CONTROLS */}
         <div
           onClick={toggleMute}

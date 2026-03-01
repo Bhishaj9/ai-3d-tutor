@@ -1,10 +1,11 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
+import { useDracoGLTF } from "../utils/ModelLoader";
+import GameObject from "./GameObject";
 import * as THREE from "three";
 
 function Gate({ step }) {
-  const { scene } = useGLTF("/models/gate.glb");
+  const { scene } = useDracoGLTF("/models/gate.glb");
   // Clone the scene so multiple gates don't share state
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 

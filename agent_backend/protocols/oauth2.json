@@ -1,0 +1,8 @@
+{
+    "0": "Welcome to OAuth2. This protocol is used for Authorization, allowing a third-party application to access resources on your behalf.",
+    "1": "The Client initiates the Authorization Code Flow by redirecting the user to the Authorization Server.",
+    "2": "The user logs into the Authorization Server and grants consent to the Client application.",
+    "3": "The Authorization Server redirects the user back to the Client with an Authorization Code.",
+    "4": "The Client securely exchanges the Authorization Code for an Access Token at the Authorization Server's token endpoint.",
+    "5": "The Client sends the Access Token to the Resource Server to access the user's protected data."
+}
