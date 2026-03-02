@@ -8,7 +8,7 @@ const BASE_Y = 0; // Ground level for character mesh
 
 function UserModel() {
   const groupRef = useRef();
-  const { animations, scene } = useDracoGLTF("models/Standing-idle.glb");
+  const { animations, scene } = useDracoGLTF("/models/Standing-idle.glb");
   const { actions, names } = useAnimations(animations, groupRef);
 
   useEffect(() => {
@@ -98,6 +98,6 @@ function User({ step }) {
 }
 
 // Preload the model
-useGLTF.preload("models/Standing-idle.glb");
+preloadDraco("/models/Standing-idle.glb");
 
 export default User;

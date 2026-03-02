@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Html } from "@react-three/drei";
 import { useState, useEffect, useRef } from "react";
 import CameraController from "./components/CameraController";
 import GameObject from "./components/GameObject";
@@ -271,7 +271,7 @@ function SceneWorld({ visualStep, currentProtocol }) {
   }, [visualStep]);
 
   return (
-    <Suspense fallback={null}>
+    <>
       <color attach="background" args={["#06080a"]} />
       <fog attach="fog" args={["#06080a", 15, 60]} />
 
@@ -352,7 +352,7 @@ function SceneWorld({ visualStep, currentProtocol }) {
         controlsRef={controlsRef}
         isLoginSubmitting={isLoginSubmitting}
       />
-    </Suspense>
+    </>
   );
 }
 
@@ -381,7 +381,9 @@ export default function Scene() {
         camera={{ position: [5, 5, 5], fov: 50 }}
         style={{ width: "100%", height: "100vh" }}
       >
-        <SceneWorld visualStep={visualStep} currentProtocol={currentProtocol} />
+        <Suspense fallback={<Html center><div style={{ color: 'white', fontFamily: 'sans-serif' }}>Loading 3D Assets...</div></Html>}>
+          <SceneWorld visualStep={visualStep} currentProtocol={currentProtocol} />
+        </Suspense>
       </Canvas>
 
       {/* UI */}

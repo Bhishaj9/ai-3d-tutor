@@ -267,17 +267,29 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-# Mount the built React app
+# Mount the built React app and public assets
 client_build_dir = os.path.join(os.path.dirname(__file__), "..", "client", "dist")
+client_public_dir = os.path.join(os.path.dirname(__file__), "..", "client", "public")
+
+# Mount models securely (try dist first, then public)
+dist_models = os.path.join(client_build_dir, "models")
+public_models = os.path.join(client_public_dir, "models")
+
+if os.path.exists(dist_models):
+    app.mount("/models", StaticFiles(directory=dist_models), name="models")
+elif os.path.exists(public_models):
+    app.mount("/models", StaticFiles(directory=public_models), name="models")
+
 if os.path.exists(client_build_dir):
-    # Mount assets and models separately
-    app.mount("/assets", StaticFiles(directory=os.path.join(client_build_dir, "assets")), name="assets")
-    app.mount("/models", StaticFiles(directory=os.path.join(client_build_dir, "models")), name="models")
+    # Mount assets
+    assets_dir = os.path.join(client_build_dir, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
     @app.get("/{catchall:path}")
     async def serve_react_app(catchall: str):
-        # Prevent API routes from being intercepted if they fail
-        if catchall.startswith("api/") or catchall.startswith("ws/"):
+        # Prevent API routes and missing assets from intercepting React index
+        if catchall.startswith("api/") or catchall.startswith("ws/") or catchall.startswith("models/"):
             return {"error": "Not Found"}
             
         file_path = os.path.join(client_build_dir, catchall)
