@@ -369,6 +369,7 @@ export default function Scene() {
     isFirstStep,
     isLastStep,
     isMuted,
+    currentProtocol,
     nextStep,
     toggleMute,
   } = useJWTController();
