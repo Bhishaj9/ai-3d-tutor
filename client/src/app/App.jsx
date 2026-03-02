@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Scene from "../canvas/scene";
 import ChatInterface from "../components/chat/ChatInterface";
 import LandingPage from "../components/LandingPage";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 const App = () => {
   const [showLanding, setShowLanding] = useState(true);
@@ -45,10 +46,10 @@ const App = () => {
       {showLanding ? (
         <LandingPage onStart={handleStart} roomId={roomId} />
       ) : (
-        <>
+        <ErrorBoundary>
           <Scene socket={socketRef.current} />
           <ChatInterface socket={socketRef.current} roomId={roomId} />
-        </>
+        </ErrorBoundary>
       )}
     </>
   );
